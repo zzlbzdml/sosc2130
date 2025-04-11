@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success Probability Decision Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        #results {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .result {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border-radius: 10px;
+            transition: transform 0.5s;
+        }
+        .success {
+            background-color: green;
+            color: white;
+        }
+        .failure {
+            background-color: red;
+            color: white;
+        }
+        #settingsModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        #modalContent {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<h1 id="mainTitle">Success Probability Decision Tool</h1>
+<button id="openModal">Set Parameters</button>
+<button id="clearResults">Clear Results</button>
+
+<div id="settingsModal">
+    <div id="modalContent">
+        <h2>Set Probability and Title</h2>
+        <input type="text" id="title" placeholder="Title">
+        <input type="number" id="probability" step="0.01" min="0" max="1" placeholder="Success Probability">
+        <button id="saveSettings">Save</button>
+        <button id="closeModal">Close</button>
+    </div>
+</div>
+
+<div>
+    <label for="trials">Number of Trials:</label>
+    <input type="number" id="trials" min="1" value="10">
+    <button id="run">Start Trials</button>
+</div>
+
+<div id="results"></div>
+<div id="finalResult" style="margin-top: 20px;"></div>
+
+<script>
+    let title = '';
+    let probability = 0;
+    let intervalId = null;
+    let totalSuccess = 0;
+    let totalTrials = 0;
+
+    document.getElementById('openModal').onclick = function() {
+        document.getElementById('settingsModal').style.display = 'flex';
+    };
+
+    document.getElementById('closeModal').onclick = function() {
+        document.getElementById('settingsModal').style.display = 'none';
+    };
+
+    document.getElementById('saveSettings').onclick = function() {
+        title = document.getElementById('title').value;
+        probability = parseFloat(document.getElementById('probability').value);
+        if (isNaN(probability) || probability < 0 || probability > 1 || title.trim() === '') {
+            alert('Please enter a valid title and success probability (0-1).');
+            return;
+        }
+        document.getElementById('mainTitle').textContent = title; // Update main title
+        document.getElementById('settingsModal').style.display = 'none';
+    };
+
+    document.getElementById('run').onclick = function() {
+        const trials = parseInt(document.getElementById('trials').value);
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = ''; // Clear previous results
+        totalSuccess = 0; // Reset success count
+        totalTrials = trials; // Set total trial count
+        document.getElementById('finalResult').innerHTML = ''; // Clear final result
+
+        let count = 0; // Current trial count
+        intervalId = setInterval(() => {
+            if (count < trials) {
+                const success = Math.random() < probability;
+                const resultIcon = document.createElement('span');
+                resultIcon.className = 'result ' + (success ? 'success' : 'failure');
+                resultIcon.textContent = success ? '✔️' : '✖️';
+                resultsDiv.appendChild(resultIcon);
+                resultIcon.style.transform = 'scale(1.5)';
+                setTimeout(() => resultIcon.style.transform = 'scale(1)', 500);
+                if (success) totalSuccess++; // Count successes
+                count++;
+            } else {
+                clearInterval(intervalId); // Stop trials
+                displayFinalResult(); // Show final result
+            }
+        }, 1000); // Trial interval of 1 second
+    };
+
+    document.getElementById('clearResults').onclick = function() {
+        document.getElementById('results').innerHTML = ''; // Clear results
+        document.getElementById('finalResult').innerHTML = ''; // Clear final result
+        clearInterval(intervalId); // Stop trials
+    };
+
+    function displayFinalResult() {
+        const successRate = (totalSuccess / totalTrials * 100).toFixed(2);
+        document.getElementById('finalResult').textContent = `Total Success Rate for You: ${successRate}%`;
+    }
+</script>
+
+</body>
+</html>
